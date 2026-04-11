@@ -1,5 +1,5 @@
 const prisma = require("../../prisma/client");
-const { Prisma } = require("../generated/prisma/client");
+const { Prisma } = require("@prisma/client");
 const { format } = require("date-fns");
 
 const listInvoices = async () => {
