@@ -17,8 +17,7 @@ app.use(cors());
 
 
 app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"]
+  origin: "*"
 }));
 
 // 3. PUBLIC ROUTES
