@@ -127,8 +127,14 @@ const createInvoice = async ({ customerTransactionIds, customerId }) => {
             const remaining = await tx.customerTransaction.count({
                 where: { invoiceId: invId },
             });
+            
             if (remaining === 0) {
-                await tx.invoice.delete({ where: { id: invId } });
+                try {
+                    await tx.invoice.delete({ where: { id: invId } });
+                } catch (e) {
+                    // If the invoice was already deleted manually, just keep going
+                    console.log(`Invoice ${invId} already gone, skipping delete.`);
+                }
             }
         }
 
@@ -145,6 +151,7 @@ const createInvoice = async ({ customerTransactionIds, customerId }) => {
             customer: customer,
             transactions: transactions,
         };
+    
     }); // --- End Transaction ---
 };
 

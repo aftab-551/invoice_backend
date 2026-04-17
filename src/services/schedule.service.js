@@ -10,10 +10,10 @@ const fetchSchedules = async () => {
     return await prisma.schedule.findMany({
         include: {
             customer: {
-                select: { name: true },
+                select: { name: true ,customerNumber: true},
             },
             product: {
-                select: { productServiceName: true },
+                select: { productServiceName: true ,productNumber: true},
             },
         },
     });

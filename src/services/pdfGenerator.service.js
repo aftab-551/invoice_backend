@@ -1,5 +1,8 @@
 const PDFDocument = require("pdfkit");
 const { format } = require("date-fns");
+const fs = require("fs");
+const path = require("path"); 
+// const { formatId } = require("../utils/formatters");
 
 function formatCurrency(amount) {
     // Adjust locale and options as needed
@@ -8,9 +11,9 @@ function formatCurrency(amount) {
     if (isNaN(numAmount)) {
         return "N/A";
     }
-    return numAmount.toLocaleString("en-US", {
+    return numAmount.toLocaleString("en-AU", {
         style: "currency",
-        currency: "USD",
+        currency: "AUD",
     });
 }
 
@@ -23,6 +26,16 @@ function generateInvoicePdf(invoice, customer, transactions) {
         doc.on("data", buffers.push.bind(buffers));
         doc.on("end", () => resolve(Buffer.concat(buffers)));
         doc.on("error", reject);
+
+
+        // 1. Position and size the logo
+        const logoPath = path.join(__dirname, "../assets/supercheap-logo.png"); // Adjust path as needed
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, 50, 45, { width: 100 }); 
+        }
+
+        // 2. MOVE THE CURSOR DOWN so text doesn't overlap
+        doc.moveDown(4);
 
         // --- Header ---
         doc.fontSize(20).text("INVOICE", { align: "center" }).moveDown(0.5);
@@ -50,25 +63,28 @@ function generateInvoicePdf(invoice, customer, transactions) {
                 )}`,
                 50,
                 invoiceInfoTop + 15
-            );
+            )
+            .font("Helvetica-Bold")
+            .text(
+                `Status: ${invoice.status.toLowerCase() === "paid" ? "Paid" : "Unpaid"}`,
+                50,
+                invoiceInfoTop + 30
+            )
 
         const customerInfoX = 350;
         doc.fontSize(10)
-            .text("Bill To:", customerInfoX, invoiceInfoTop)
-            .font("Helvetica-Bold") // Make customer name bold
-            .text(customer.name || "N/A", customerInfoX, invoiceInfoTop + 15)
-            .font("Helvetica") // Reset font
-            .text(
-                customer.location || "N/A",
-                customerInfoX,
-                invoiceInfoTop + 30
-            )
-            .text(
-                customer.phoneNumber || "N/A",
-                customerInfoX,
-                invoiceInfoTop + 45
-            )
-            .moveDown(2); // Add space after addresses
+            .text("Bill To:", customerInfoX, invoiceInfoTop, { underline: true })
+            .font("Helvetica-Bold")
+            // COMBINE Label and Value into one string:
+            .text(`Name: ${customer.name || "N/A"}`, customerInfoX, invoiceInfoTop + 15)
+            
+            .font("Helvetica") 
+            .text(`Location: ${customer.location || "N/A"}`, customerInfoX, invoiceInfoTop + 30)
+            .text(`Phone: ${customer.phoneNumber || "N/A"}`, customerInfoX, invoiceInfoTop + 45)
+            .text(`Customer ID: ${customer.customerNumber || "N/A"}`, customerInfoX, invoiceInfoTop + 60)
+            .text(`Email: ${customer.email || "N/A"}`, customerInfoX, invoiceInfoTop + 75);
+
+        doc.moveDown(2);
 
         // --- Invoice Table ---
         const tableTop = doc.y + 20; // Add space before table
@@ -137,7 +153,7 @@ function generateInvoicePdf(invoice, customer, transactions) {
         const calcTop = doc.y + 20;
         doc.font("Helvetica-Bold")
             .fontSize(12)
-            .text("Total Amount:", 350, calcTop)
+            .text("Total Amount(AUD):", 350, calcTop)
             .text(formatCurrency(invoice.totalAmount), amountCol, calcTop, {
                 align: "right",
             })

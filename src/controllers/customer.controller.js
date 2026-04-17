@@ -6,10 +6,11 @@ const customerService = require("../services/customer.service");
  */
 const createCustomerHandler = async (req, res, next) => {
     try {
-        const { name, location, postCode, suburb, phoneNumber } = req.body;
+        const { name, email, location, postCode, suburb, phoneNumber } = req.body;
 
         const newCustomer = await customerService.createCustomer({
             name,
+            email,
             location,
             postCode,
             suburb,

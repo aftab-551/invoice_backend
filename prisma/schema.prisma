@@ -39,7 +39,9 @@ model User {
 
 model Customer {
   id          Int    @id @default(autoincrement())
+  customerNumber  String?  @unique
   name        String @db.VarChar(100)
+  email       String?  @unique @db.VarChar(255)
   location    String @db.VarChar(100)
   postCode    Int
   suburb      String @db.VarChar(100)
@@ -58,6 +60,7 @@ model Customer {
 
 model ProductAndService {
   id                 Int         @id @default(autoincrement())
+  productNumber      String?     @unique
   productType        ProductType
   productServiceName String?     @db.VarChar(255)
   unitPrice          Decimal     @db.Decimal(10, 2)
