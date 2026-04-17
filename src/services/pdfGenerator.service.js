@@ -18,7 +18,6 @@ function formatCurrency(amount) {
 }
 
 function generateInvoicePdf(invoice, customer, transactions) {
-    console.log("Generating PDF with invoice:", invoice,customer);
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({ margin: 50, size: "A4" });
 
