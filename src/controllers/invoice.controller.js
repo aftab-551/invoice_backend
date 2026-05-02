@@ -1,5 +1,6 @@
 const invoiceService = require("../services/invoice.service");
 const generateInvoicePdf = require("../services/pdfGenerator.service");
+const nodemailer = require("nodemailer");
 
 const listInvoicesHandler = async (req, res, next) => {
     try {
@@ -149,9 +150,58 @@ const createInvoiceHandler = async (req, res, next) => {
     }
 };
 
+//Sending invoice email handler 
+const sendInvoiceEmailHandler = async (req, res, next) => {
+    try {
+        const invoice = await invoiceService.getInvoiceWithDetails(req.params.id);
+        if (!invoice || !invoice.customer?.email) {
+            return res.status(404).json({ message: "Invoice or customer email not found." });
+        }
+
+        // 1. Generate the PDF buffer using your existing service
+        const pdfBuffer = await generateInvoicePdf(
+            invoice,
+            invoice.customer,
+            invoice.transactions || []
+        );
+
+        // 2. Setup Nodemailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        // 3. Send Email with Attachment
+        await transporter.sendMail({
+            from: `"Super Cheap Mobile Mechanic" <${process.env.EMAIL_USER}>`,
+            to: invoice.customer.email,
+            subject: `Invoice #${invoice.invoiceNumber}`,
+            text: `Thank you for your business. Please find attached your invoice for AUD $${invoice.totalAmount}.`,
+            attachments: [
+                {
+                    filename: `invoice-${invoice.invoiceNumber}.pdf`,
+                    content: pdfBuffer
+                }
+            ]
+        });
+
+        // 4. Update status to SENT automatically (as per your frontend requirement)
+        await invoiceService.updateInvoiceStatus(req.params.id, "SENT");
+
+        res.status(200).json({ message: "Email sent and status updated successfully." });
+    } catch (error) {
+        console.error("Email Error:", error);
+        next(error);
+    }
+};
+
 module.exports = {
     createInvoiceHandler,
     listInvoicesHandler,
     getInvoicePdfHandler,
     patchInvoiceStatusHandler,
+    sendInvoiceEmailHandler,
 };

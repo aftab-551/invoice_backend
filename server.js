@@ -1,6 +1,6 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 
 // 1. Import Routes and Middleware
 const authRoutes = require("./src/routes/auth.routes.js"); // Assuming you have a separate auth file
